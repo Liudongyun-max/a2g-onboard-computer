@@ -1,0 +1,13 @@
+camera_matrix:
+  rows: 3
+  cols: 3
+  data: [600.0, 0.0, 320.0, 0.0, 600.0, 240.0, 0.0, 0.0, 1.0]
+distortion_coefficients:
+  rows: 1
+  cols: 5
+  data: [0.0, 0.0, 0.0, 0.0, 0.0]
+frame_id: landing_camera
+mount:
+  roll_deg: 0.0
+  pitch_deg: -90.0
+  yaw_deg: 0.0

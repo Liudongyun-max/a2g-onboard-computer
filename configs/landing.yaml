@@ -1,0 +1,20 @@
+phases:
+  search:
+    min_confidence: 0.45
+    action: hold_or_scan
+  align:
+    max_horizontal_error_m: 0.50
+    descent_allowed: false
+  descend:
+    max_horizontal_error_m: 0.25
+    descent_allowed: true
+  final:
+    altitude_m: 0.45
+    descent_allowed: true
+    require_target: true
+
+failsafe:
+  target_lost_action: hold
+  low_fps_action: hold
+  mavlink_lost_action: flight_controller_failsafe
+  min_runtime_fps: 12

@@ -1,0 +1,17 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.venv/
+venv/
+env/
+
+configs/env.local
+*.local
+
+logs/*
+!logs/.gitkeep
+models/*
+!models/.gitkeep
+calib/*
+!calib/.gitkeep
