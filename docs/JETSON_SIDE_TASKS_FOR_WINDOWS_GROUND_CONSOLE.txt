@@ -1,0 +1,376 @@
+Jetson 端任务清单：对接 Windows Ground Station Console 第一阶段封装
+====================================================================
+
+一、当前 Windows 端已完成内容
+--------------------------------------------------------------------
+
+1. Windows 单窗口控制台已部署：
+
+   F:\A2G Windows\scripts\ground_station_console.ps1
+
+2. Windows 桌面快捷方式已创建：
+
+   A2G Ground Station Console.lnk
+
+3. Windows 控制台会访问以下地址：
+
+   Dashboard:
+   http://192.168.1.219:8080
+
+   Status:
+   http://192.168.1.219:8080/status
+
+   Stream:
+   http://192.168.1.219:8080/stream
+
+   Ground Command API:
+   POST http://192.168.1.219:8080/api/ground-command
+
+4. Windows 控制台当前会发送这些白名单信号：
+
+   ping
+   status_snapshot
+   mark_event
+   start_record
+   stop_record
+   shadow_start
+   shadow_stop
+
+5. 当前安全边界：
+
+   Windows 端只发送模块化意图信号。
+   Windows 端不通过按钮执行 SSH shell。
+   Windows 端不直接向飞控发送控制。
+   Jetson 端必须继续保持 mavlink.enabled=false。
+   vision-landing.service 当前不得启用。
+
+
+二、Jetson 端需要新增或确认的模块
+--------------------------------------------------------------------
+
+1. 在 Dashboard HTTP 服务中新增接口：
+
+   POST /api/ground-command
+
+2. 请求头：
+
+   Content-Type: application/json
+
+3. 可选鉴权头：
+
+   X-A2G-Token: <token>
+
+4. 请求体示例：
+
+   {
+     "command": "mark_event",
+     "params": {
+       "note": "ground test"
+     },
+     "client_time": "2026-05-27T10:30:00+08:00",
+     "client": "windows-ground-console"
+   }
+
+5. 成功响应示例：
+
+   {
+     "ok": true,
+     "command_id": "cmd_20260527_103000_001",
+     "command": "mark_event",
+     "accepted": true,
+     "executed": true,
+     "reason": "event marked"
+   }
+
+6. 拒绝响应示例：
+
+   {
+     "ok": false,
+     "command_id": "cmd_20260527_103001_002",
+     "command": "send_velocity",
+     "accepted": false,
+     "executed": false,
+     "reason": "flight_control_forbidden_when_mavlink_disabled"
+   }
+
+
+三、Jetson 端命令白名单
+--------------------------------------------------------------------
+
+当前阶段允许执行：
+
+   ping
+   status_snapshot
+   mark_event
+   start_record
+   stop_record
+   shadow_start
+   shadow_stop
+
+当前阶段必须拒绝：
+
+   enable_mavlink
+   start_vision_landing
+   send_velocity
+   arm
+   takeoff
+   land
+   set_mode
+
+后续受限命令，暂不建议第一阶段启用：
+
+   restart_dashboard_request
+   start_udp_video_request
+   stop_udp_video_request
+   reload_config
+
+
+四、Jetson 端安全门禁逻辑
+--------------------------------------------------------------------
+
+POST /api/ground-command 收到请求后，必须按以下顺序处理：
+
+1. 解析 JSON。
+2. 检查 command 字段是否存在。
+3. 检查 command 是否在白名单。
+4. 检查 token，如果启用鉴权。
+5. 检查当前安全阶段是否为 monitor_only。
+6. 检查 configs/aruco_live.yaml 中 mavlink.enabled 是否为 false。
+7. 禁止任何飞控控制类命令。
+8. 禁止通过该接口启动 vision-landing.service。
+9. 写入 ground_commands.jsonl 日志。
+10. 执行对应安全 handler。
+11. 返回 accepted / rejected 结果给 Windows。
+
+硬性规则：
+
+1. mavlink.enabled=false 时，任何飞控控制类命令都必须拒绝。
+2. vision-landing.service 当前不得由该接口启动。
+3. UDP 视频不得和 Dashboard 同时占用 /dev/video0。
+4. 地面端信号只能改变监管、日志、Shadow 或状态标记，不得直接输出飞控控制。
+
+
+五、Jetson 端日志要求
+--------------------------------------------------------------------
+
+新增日志文件：
+
+   /home/jetson/on-board computer/logs/ground_commands.jsonl
+
+每条命令必须写入一行 JSON，例如：
+
+   {
+     "time": "2026-05-27T10:30:00+08:00",
+     "command_id": "cmd_20260527_103000_001",
+     "source_ip": "192.168.1.3",
+     "client": "windows-ground-console",
+     "command": "mark_event",
+     "params": {
+       "note": "ground test"
+     },
+     "accepted": true,
+     "executed": true,
+     "reason": "event marked",
+     "safety_mode": "monitor_only",
+     "mavlink_enabled": false
+   }
+
+
+六、各命令对应行为
+--------------------------------------------------------------------
+
+1. ping
+
+   返回 Jetson 在线、接口可用、当前安全模式。
+   不改变任何状态。
+
+2. status_snapshot
+
+   读取当前 Dashboard /status 数据。
+   将当前状态快照写入 ground_commands.jsonl 或 system_events.jsonl。
+   返回当前 detected、target_id、fps、range_m、running、mavlink_enabled。
+
+3. mark_event
+
+   写入一条事件标记。
+   用于后续对齐视频、状态日志、QGC 观察记录。
+   不改变控制状态。
+
+4. start_record
+
+   第一阶段可以只写入 recording_start 事件。
+   如果已有录像或日志记录模块，则只切换记录标志。
+   不启动飞控控制。
+
+5. stop_record
+
+   第一阶段可以只写入 recording_stop 事件。
+   如果已有录像或日志记录模块，则只关闭记录标志。
+   不停止 Dashboard。
+
+6. shadow_start
+
+   设置 shadow_enabled=true。
+   允许继续计算建议控制量 vx/vy/vz 并记录。
+   禁止向飞控发送 MAVLink。
+
+7. shadow_stop
+
+   设置 shadow_enabled=false。
+   停止 Shadow 标记或建议量记录。
+   禁止影响 Dashboard 视频流。
+
+
+七、必须保持的 Jetson 状态
+--------------------------------------------------------------------
+
+vision-dashboard.service:
+
+   running
+   enabled
+
+vision-landing.service:
+
+   disabled
+
+configs/aruco_live.yaml:
+
+   mavlink:
+     enabled: false
+
+/dev/video0:
+
+   默认由 Dashboard 占用
+
+Dashboard:
+
+   继续监听 0.0.0.0:8080
+
+/status:
+
+   必须继续正常返回 JSON
+
+/stream:
+
+   必须继续正常返回 MJPEG
+
+
+八、Jetson 端本机验证命令
+--------------------------------------------------------------------
+
+进入项目：
+
+   cd "/home/jetson/on-board computer"
+
+确认端口和服务：
+
+   bash scripts/port_status.sh
+
+测试 Ground Command API：
+
+   curl -X POST http://127.0.0.1:8080/api/ground-command \
+     -H "Content-Type: application/json" \
+     -d '{"command":"ping","params":{},"client":"jetson-local-test"}'
+
+测试事件标记：
+
+   curl -X POST http://127.0.0.1:8080/api/ground-command \
+     -H "Content-Type: application/json" \
+     -d '{"command":"mark_event","params":{"note":"local jetson api test"},"client":"jetson-local-test"}'
+
+测试 Shadow Start：
+
+   curl -X POST http://127.0.0.1:8080/api/ground-command \
+     -H "Content-Type: application/json" \
+     -d '{"command":"shadow_start","params":{"note":"shadow test"},"client":"jetson-local-test"}'
+
+测试 Shadow Stop：
+
+   curl -X POST http://127.0.0.1:8080/api/ground-command \
+     -H "Content-Type: application/json" \
+     -d '{"command":"shadow_stop","params":{"note":"shadow stop test"},"client":"jetson-local-test"}'
+
+查看命令日志：
+
+   tail -f logs/ground_commands.jsonl
+
+
+九、Windows-Jetson 联调验收
+--------------------------------------------------------------------
+
+Jetson 端部署完成后，Windows 端打开：
+
+   A2G Ground Station Console
+
+依次点击：
+
+1. Refresh /status
+2. Ping
+3. Status Snapshot
+4. Mark Event
+5. Start Record
+6. Stop Record
+7. Shadow Start
+8. Shadow Stop
+
+验收标准：
+
+1. Windows 单窗口内每个按钮都有 JSON 回执。
+2. Jetson logs/ground_commands.jsonl 每次点击都新增一条记录。
+3. Dashboard 页面不中断。
+4. /status 正常。
+5. /stream 正常。
+6. vision-dashboard.service 保持 running。
+7. vision-landing.service 保持 disabled。
+8. mavlink.enabled 保持 false。
+9. 飞控没有收到 Jetson 控制指令。
+10. QGroundControl 仍只用于飞控状态监控和人工接管。
+
+
+十、备用 UDP 视频链路注意事项
+--------------------------------------------------------------------
+
+当前不建议第一阶段通过 Windows 控制台直接切换 UDP 视频。
+
+如需测试 UDP 5600，必须人工在 Jetson 上执行：
+
+   cd "/home/jetson/on-board computer"
+
+先停止 Dashboard，释放 /dev/video0：
+
+   systemctl --user stop vision-dashboard
+
+启动 UDP 视频：
+
+   GROUND_STATION_IP=<Windows电脑IP> bash scripts/run_udp_video.sh
+
+Windows VLC 打开：
+
+   udp://@:5600
+
+测试完成后恢复 Dashboard：
+
+   systemctl --user start vision-dashboard
+
+再次确认：
+
+   bash scripts/port_status.sh
+
+
+十一、最终目标
+--------------------------------------------------------------------
+
+第一阶段目标不是让 Windows 控制飞控，而是建立：
+
+   Windows 单窗口按钮
+      -> POST /api/ground-command
+      -> Jetson Command API
+      -> 白名单校验
+      -> Safety Gate
+      -> 日志记录
+      -> 安全 handler
+      -> JSON 回执
+      -> Windows 单窗口显示结果
+
+当前阶段所有指令都必须是监管、记录、Shadow 或状态切换类信号。
+不得开放真实飞控控制链路。

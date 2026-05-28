@@ -1,0 +1,21 @@
+{
+  "safety_mode": "monitor_only",
+  "allowed_commands": [
+    "ping",
+    "status_snapshot",
+    "mark_event",
+    "start_record",
+    "stop_record",
+    "shadow_start",
+    "shadow_stop"
+  ],
+  "forbidden_commands": [
+    "enable_mavlink",
+    "start_vision_landing",
+    "send_velocity",
+    "arm",
+    "takeoff",
+    "land",
+    "set_mode"
+  ]
+}

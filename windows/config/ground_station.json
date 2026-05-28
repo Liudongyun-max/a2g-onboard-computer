@@ -1,0 +1,84 @@
+{
+  "project": "A2G Windows Ground Station",
+  "stage": "LAN WiFi small-loop validation",
+  "safetyBoundary": {
+    "monitorOnly": true,
+    "mavlinkControlEnabled": false,
+    "visionLandingServiceAllowed": false
+  },
+  "jetson": {
+    "host": "192.168.1.219",
+    "user": "jetson",
+    "projectPath": "/home/jetson/on-board computer",
+    "aruco": {
+      "dictionary": "DICT_5X5_250",
+      "markerId": 1,
+      "markerLengthM": 0.04268
+    },
+    "dashboard": {
+      "scheme": "http",
+      "port": 8080,
+      "statusPath": "/status"
+    },
+    "commandApi": {
+      "path": "/api/ground-command",
+      "tokenEnv": "A2G_GROUND_TOKEN",
+      "timeoutSeconds": 5,
+      "allowedCommands": [
+        "ping",
+        "status_snapshot",
+        "mark_event",
+        "start_record",
+        "stop_record",
+        "shadow_start",
+        "shadow_stop"
+      ],
+      "restrictedCommands": [
+        "restart_dashboard_request",
+        "start_udp_video_request",
+        "stop_udp_video_request"
+      ],
+      "forbiddenCurrentStage": [
+        "enable_mavlink",
+        "start_vision_landing",
+        "send_velocity",
+        "arm",
+        "takeoff",
+        "land",
+        "set_mode"
+      ]
+    },
+    "ssh": {
+      "port": 22,
+      "hostAlias": "jetson-a2g"
+    }
+  },
+  "flightController": {
+    "qgroundcontrol": {
+      "udpPort": 14550,
+      "requiredForFinalAcceptance": true
+    }
+  },
+  "backupVideo": {
+    "vlc": {
+      "enabled": true,
+      "portablePath": "tools/vlc/vlc-3.0.23/vlc.exe"
+    },
+    "futureStreams": {
+      "udpH264": "udp://@:5600",
+      "rtsp": "rtsp://192.168.1.219:8554/stream"
+    },
+    "jetsonScript": "scripts/run_udp_video.sh",
+    "requiresDashboardStopped": true,
+    "udpPort": 5600
+  },
+  "jetsonScripts": {
+    "portStatus": "scripts/port_status.sh",
+    "udpVideo": "scripts/run_udp_video.sh"
+  },
+  "futureInterfaces": {
+    "dashboardApi": [],
+    "videoStreams": [],
+    "maintenanceCommands": []
+  }
+}

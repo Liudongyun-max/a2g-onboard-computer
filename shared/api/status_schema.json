@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "required": [
+    "running",
+    "detected",
+    "target_id",
+    "fps",
+    "range_m",
+    "mavlink_enabled",
+    "safety_mode"
+  ],
+  "properties": {
+    "running": { "type": "boolean" },
+    "detected": { "type": "boolean" },
+    "target_id": { "type": ["integer", "null"] },
+    "fps": { "type": ["number", "null"] },
+    "range_m": { "type": ["number", "null"] },
+    "mavlink_enabled": { "type": "boolean" },
+    "safety_mode": { "type": "string" }
+  }
+}
