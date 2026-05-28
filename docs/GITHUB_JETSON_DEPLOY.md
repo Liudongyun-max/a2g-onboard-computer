@@ -56,7 +56,40 @@ git commit -m "Update Jetson onboard deployment"
 git@github.com:<OWNER>/<REPO>.git
 ```
 
-Jetson 使用 SSH key 推送：
+Jetson 推荐使用专用 SSH key 推送。执行：
+
+```bash
+cd "/home/jetson/on-board computer"
+bash scripts/github_ssh_setup.sh --repo <OWNER>/<REPO>
+```
+
+脚本会生成：
+
+```text
+~/.ssh/a2g_jetson_github
+~/.ssh/a2g_jetson_github.pub
+```
+
+把脚本输出的公钥添加到 GitHub：
+
+- 仓库级：`Repository Settings -> Deploy keys -> Add deploy key`
+- 必须勾选：`Allow write access`
+- 或账号级：`Settings -> SSH and GPG keys -> New SSH key`
+
+添加后测试：
+
+```bash
+ssh -T git@github.com-a2g
+```
+
+推送：
+
+```bash
+cd "/home/jetson/on-board computer"
+bash scripts/github_push.sh
+```
+
+如果你要手动执行 SSH key 配置，流程如下：
 
 ```bash
 cd "/home/jetson/on-board computer"
@@ -94,6 +127,16 @@ git remote add origin https://github.com/<OWNER>/<REPO>.git
 git branch -M main
 git push -u origin main
 ```
+
+如果需要安装 GitHub CLI `gh`，Jetson 本机执行：
+
+```bash
+sudo apt-get update
+sudo apt-get install -y gh
+gh auth login
+```
+
+当前项目不强依赖 `gh`，SSH key 方案已经可以完成 `git push`。
 
 ## 4. 新 Jetson 从 GitHub 拉取部署
 
