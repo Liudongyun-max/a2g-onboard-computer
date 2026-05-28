@@ -1,78 +1,51 @@
-# UAV Vision Landing Deploy
+# A2G Dual-System Deployment Workspace
 
-This project is a deployable on-board computer package for a Jetson-based UAV visual landing
-system. It is structured for field use: camera input, target detection,
-relative pose estimation, landing control, and flight-controller communication
-are separated behind small interfaces.
+This repository maintains both sides of the A2G visual landing test stack:
 
-## Current Target Platform
+- `windows/`: Windows ground station console, checks, local logs/reports placeholders.
+- `jetson/`: Ubuntu / Jetson onboard vision landing runtime, Dashboard, Ground Command API, services, logs placeholder.
+- `shared/`: API contracts, command whitelist, status schema, and safety boundary shared by both sides.
+- `deploy/`: platform detection and deployment entrypoints.
 
-- NVIDIA Jetson, Ubuntu 20.04 / L4T R35.x
-- CUDA 11.4, TensorRT 8.x
-- Python 3.8
-- OpenCV with GStreamer
-- PX4 or ArduPilot through MAVLink
+## Deployment Entrypoints
 
-## Directory Layout
+Windows:
 
-```text
-configs/                 Runtime configuration
-models/                  ONNX and TensorRT engine files
-logs/                    Runtime logs
-scripts/                 Host checks, environment bootstrap, launch helpers
-src/vision_landing/      Python package
-tests/                   Unit tests for control and geometry logic
-tools/                   Calibration and model conversion utilities
+```powershell
+powershell -ExecutionPolicy Bypass -File .\deploy\bootstrap.ps1
 ```
 
-## Recommended Deployment Flow
-
-1. Run `scripts/check_system.sh` and confirm camera, TensorRT, and Python modules.
-2. Calibrate the landing camera and write intrinsics to `configs/camera.yaml`.
-3. Train the detector on a workstation, export ONNX, then build TensorRT on Jetson.
-4. Validate `mock` detector mode with recorded frames or live camera.
-5. Switch detector backend to `tensorrt` and verify frame rate.
-6. Connect the flight controller and validate MAVLink in simulation first.
-7. Fly with conservative limits: low speed, target-loss hover, manual takeover.
-
-## Run
-
-Dry-run with the mock detector:
+Ubuntu / Jetson:
 
 ```bash
-cd "/home/jetson/on-board computer"
-python3 -m vision_landing.main --config configs/default.yaml --dry-run
+bash deploy/bootstrap.sh
 ```
 
-Live mode after installing dependencies and setting camera/MAVLink config:
+## Current Safety Boundary
+
+The current repository state is monitor-only:
+
+- `jetson/configs/aruco_live.yaml` keeps `mavlink.enabled=false`.
+- `vision-dashboard.service` may run for Dashboard, `/status`, `/stream`, and Ground Command API.
+- `vision-landing.service` must stay disabled / inactive.
+- Ground Command API must reject flight-control commands.
+
+## Jetson Quick Link
 
 ```bash
-cd "/home/jetson/on-board computer"
-python3 -m vision_landing.main --config configs/aruco_live.yaml
+cd jetson
+bash scripts/quick_link_start.sh
 ```
 
-Convenience scripts:
+## Windows Quick Link
 
-```bash
-bash scripts/run_dry.sh
-bash scripts/visualize_aruco.sh
-bash scripts/run_aruco_live.sh
-bash scripts/run_live.sh
+```powershell
+powershell -ExecutionPolicy Bypass -File .\windows\scripts\quick_link_test.ps1 -JetsonIp 192.168.1.219 -Port 8080 -OpenDashboard
 ```
 
-Deployment details are in `docs/DEPLOYMENT.md`; calibration gates are in
-`docs/CALIBRATION_PLAN.md`.
+## Documentation
 
-For local development:
-
-```bash
-export PYTHONPATH=$PWD/src:$PYTHONPATH
-python3 -m vision_landing.main --config configs/default.yaml --dry-run
-```
-
-## Safety Notes
-
-This repository does not bypass the flight controller. It should send high-level
-velocity or position setpoints only. Keep RC/manual takeover, geofence, low
-battery, target-loss, and communication-loss failsafes enabled in the flight
-controller.
+- Dual-system push standard: `docs/GITHUB_DUAL_SYSTEM_PUSH_STANDARD.md`
+- Jetson deployment: `jetson/docs/GITHUB_JETSON_DEPLOY.md`
+- Jetson/Windows link test: `jetson/docs/QUICK_LINK_TEST_GUIDE.md`
+- Shared API contract: `shared/api/ground_command_contract.md`

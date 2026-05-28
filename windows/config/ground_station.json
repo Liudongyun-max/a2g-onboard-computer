@@ -1,0 +1,8 @@
+{
+  "jetson_ip": "192.168.1.219",
+  "dashboard_port": 8080,
+  "dashboard_url": "http://192.168.1.219:8080",
+  "status_url": "http://192.168.1.219:8080/status",
+  "stream_url": "http://192.168.1.219:8080/stream",
+  "ground_command_url": "http://192.168.1.219:8080/api/ground-command"
+}

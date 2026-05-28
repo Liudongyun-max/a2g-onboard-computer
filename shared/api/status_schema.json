@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "A2G Dashboard Status",
+  "type": "object",
+  "required": [
+    "running",
+    "detected",
+    "target_id",
+    "fps",
+    "range_m",
+    "mavlink_enabled",
+    "safety_mode",
+    "recording",
+    "shadow_active"
+  ],
+  "properties": {
+    "running": { "type": "boolean" },
+    "detected": { "type": "boolean" },
+    "target_id": { "type": ["integer", "null"] },
+    "fps": { "type": "number" },
+    "range_m": { "type": ["number", "null"] },
+    "camera_position_m": {
+      "type": ["array", "null"],
+      "items": { "type": "number" },
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "confidence": { "type": "number" },
+    "frame_id": { "type": "integer" },
+    "updated_at": { "type": ["string", "null"] },
+    "mavlink_enabled": { "type": "boolean" },
+    "safety_mode": { "type": "string", "enum": ["monitor_only"] },
+    "recording": { "type": "boolean" },
+    "shadow_active": { "type": "boolean" },
+    "last_ground_command": { "type": ["object", "null"] },
+    "error": { "type": ["string", "null"] }
+  },
+  "additionalProperties": true
+}

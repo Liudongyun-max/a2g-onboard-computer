@@ -8,7 +8,7 @@ Type=simple
 User=jetson
 Group=jetson
 EnvironmentFile=-/home/jetson/on-board\x20computer/configs/env.local
-ExecStart=/bin/bash -lc 'cd "/home/jetson/on-board computer" && export PYTHONPATH="$PWD/src:${PYTHONPATH:-}" && exec /usr/bin/python3 -m vision_landing.main --config configs/aruco_live.yaml --camera-config configs/camera.yaml'
+ExecStart=/bin/bash -lc 'cd "/home/jetson/on-board computer/jetson" && export PYTHONPATH="$PWD/src:${PYTHONPATH:-}" && exec /usr/bin/python3 -m vision_landing.main --config configs/aruco_live.yaml --camera-config configs/camera.yaml'
 Restart=on-failure
 RestartSec=2
 

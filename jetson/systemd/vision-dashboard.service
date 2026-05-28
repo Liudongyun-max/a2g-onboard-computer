@@ -9,7 +9,7 @@ User=jetson
 Group=jetson
 Environment=DASHBOARD_HOST=0.0.0.0
 Environment=DASHBOARD_PORT=8080
-ExecStart=/bin/bash -lc 'cd "/home/jetson/on-board computer" && exec scripts/run_dashboard.sh'
+ExecStart=/bin/bash -lc 'cd "/home/jetson/on-board computer/jetson" && exec scripts/run_dashboard.sh'
 Restart=on-failure
 RestartSec=2
 

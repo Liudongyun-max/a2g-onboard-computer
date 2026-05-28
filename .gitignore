@@ -1,17 +1,60 @@
+# Runtime logs
+logs/*
+**/logs/*
+!logs/.gitkeep
+!**/logs/.gitkeep
+
+# Reports and probes
+reports/*
+**/reports/*
+!reports/.gitkeep
+!**/reports/.gitkeep
+
+# Media captures
+*.mjpg
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Local binaries and portable tools
+tools/vlc/vlc-*/
+**/tools/vlc/vlc-*/
+*.exe
+*.dll
+*.zip
+*.7z
+
+# Windows local shortcuts
+*.lnk
+Thumbs.db
+Desktop.ini
+
+# Local environment
+configs/env.local
+**/configs/env.local
+*.local
+
+# Models and calibration raw data
+models/*
+**/models/*
+!models/.gitkeep
+!**/models/.gitkeep
+calib/*
+**/calib/*
+!calib/.gitkeep
+!**/calib/.gitkeep
+
+# Python / editor cache
 __pycache__/
+**/__pycache__/
 *.pyc
 .pytest_cache/
 .mypy_cache/
 .venv/
 venv/
 env/
-
-configs/env.local
-*.local
-
-logs/*
-!logs/.gitkeep
-models/*
-!models/.gitkeep
-calib/*
-!calib/.gitkeep
+.vscode/
+.idea/
+*.tmp
+*.log

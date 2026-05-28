@@ -1,0 +1,27 @@
+{
+  "safety_mode": "monitor_only",
+  "allowed": [
+    "ping",
+    "status_snapshot",
+    "mark_event",
+    "start_record",
+    "stop_record",
+    "shadow_start",
+    "shadow_stop"
+  ],
+  "forbidden": [
+    "enable_mavlink",
+    "start_vision_landing",
+    "send_velocity",
+    "arm",
+    "takeoff",
+    "land",
+    "set_mode"
+  ],
+  "deferred": [
+    "restart_dashboard_request",
+    "start_udp_video_request",
+    "stop_udp_video_request",
+    "reload_config"
+  ]
+}
