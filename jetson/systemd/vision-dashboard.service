@@ -1,0 +1,17 @@
+[Unit]
+Description=UAV Vision Landing Web Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=jetson
+Group=jetson
+Environment=DASHBOARD_HOST=0.0.0.0
+Environment=DASHBOARD_PORT=8080
+ExecStart=/bin/bash -lc 'cd "/home/jetson/on-board computer/jetson" && exec scripts/run_dashboard.sh'
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

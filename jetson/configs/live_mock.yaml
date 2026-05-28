@@ -1,0 +1,47 @@
+runtime:
+  loop_hz: 20
+  dry_run: false
+  log_level: INFO
+
+camera:
+  backend: gstreamer
+  device: /dev/video0
+  width: 640
+  height: 480
+  fps: 30
+  flip_method: 0
+  gstreamer_pipeline: ""
+
+detector:
+  backend: mock
+  confidence_threshold: 0.45
+  input_width: 640
+  input_height: 640
+  engine_path: models/landing_target.engine
+  onnx_path: models/landing_target.onnx
+  class_names:
+    - landing_pad
+
+target:
+  real_width_m: 0.60
+  real_height_m: 0.60
+  use_pnp: false
+
+control:
+  mode: velocity
+  max_xy_speed_mps: 0.6
+  max_z_speed_mps: 0.35
+  center_deadband_px: 18
+  kp_xy: 0.0025
+  kp_z: 0.25
+  descent_speed_mps: 0.22
+  final_descent_speed_mps: 0.10
+  final_altitude_m: 0.45
+  target_lost_timeout_s: 0.6
+
+mavlink:
+  enabled: false
+  connection: udp:127.0.0.1:14550
+  system_id: 1
+  component_id: 191
+  offboard_rate_hz: 20

@@ -1,11 +1,35 @@
-# Jetson Module Placeholder
+# A2G Jetson Onboard Module
 
-This repository snapshot currently contains the Windows ground station assets and shared deployment contracts. Jetson runtime source files should be placed under this directory when they are merged into the dual-system repository.
+This module contains the Ubuntu / Jetson onboard runtime for the A2G visual landing stack.
 
-Do not add fabricated Jetson service or control implementations. Keep the current safety boundary:
+## Current Runtime Scope
 
-```text
-mavlink.enabled=false
-vision-landing.service=disabled/inactive
-safety_mode=monitor_only
+- ArUco detection and pose estimation
+- Web Dashboard
+- `/status`
+- `/stream`
+- `POST /api/ground-command`
+- Ground command safety gate
+- Monitor-only logging and Shadow flags
+
+Current safety state:
+
+```yaml
+mavlink:
+  enabled: false
+```
+
+`vision-landing.service` must remain disabled / inactive until Shadow testing and flight-control authorization are complete.
+
+## Run From Repository Root
+
+```bash
+bash deploy/bootstrap.sh
+```
+
+## Run From Jetson Module
+
+```bash
+cd jetson
+bash scripts/quick_link_start.sh
 ```

@@ -1,0 +1,4 @@
+numpy>=1.17
+PyYAML>=5.3
+lxml==4.9.4
+pymavlink>=2.4

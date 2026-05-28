@@ -1,0 +1,44 @@
+runtime:
+  loop_hz: 20
+  dry_run: false
+  log_level: INFO
+
+camera:
+  backend: gstreamer
+  device: /dev/video0
+  width: 640
+  height: 480
+  fps: 30
+  flip_method: 0
+  gstreamer_pipeline: ""
+
+detector:
+  backend: aruco
+  dictionary: DICT_5X5_250
+  marker_id: 1
+  confidence_threshold: 0.5
+
+target:
+  marker_length_m: 0.04268
+  real_width_m: 0.04268
+  real_height_m: 0.04268
+  use_pnp: true
+
+control:
+  mode: velocity
+  max_xy_speed_mps: 0.35
+  max_z_speed_mps: 0.20
+  center_deadband_px: 22
+  kp_xy: 0.0018
+  kp_z: 0.20
+  descent_speed_mps: 0.12
+  final_descent_speed_mps: 0.06
+  final_altitude_m: 0.35
+  target_lost_timeout_s: 0.5
+
+mavlink:
+  enabled: false
+  connection: udp:127.0.0.1:14550
+  system_id: 1
+  component_id: 191
+  offboard_rate_hz: 20
